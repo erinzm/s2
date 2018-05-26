@@ -97,6 +97,13 @@ def find_obvious_cuts(G, L=None):
 
     return cuts
 
+def find_mssp(G, L, shortest_path):
+    ssp = find_ssp(G, L, shortest_path)
+    if ssp is None:
+        return None
+
+    return ssp[len(ssp)//2]
+
 def find_ssp(G, L, shortest_path):
     labeled_nodes = [l[0] for l in L]
     paths = []
