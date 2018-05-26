@@ -96,3 +96,27 @@ def find_obvious_cuts(G, L=None):
             cuts.append(edge)
 
     return cuts
+
+def find_ssp(G, L, shortest_path):
+    labeled_nodes = [l[0] for l in L]
+    paths = []
+    # for every pair of labeled vertices
+    for (u, v) in itertools.combinations(labeled_nodes, r=2):
+        # for every cut pair of labels
+        if G.node[u]['label'] != G.node[v]['label']:
+            try:
+                P = shortest_path(G, u, v)
+            except nx.NetworkXNoPath:
+                # we don't have a path, so skip adding it to the list
+                continue
+
+            paths.append(P)
+
+    # if we found no paths, return None
+    if paths == []:
+        return None
+
+    # find the shortest shortest path
+    ssp = min(paths, key=lambda path: len(path))
+
+    return ssp
