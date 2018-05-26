@@ -11,7 +11,6 @@ Implements S², an Efficient Graph-Based Active Learning Algorithm.
 """
 
 import networkx as nx
-import numpy as np
 import random
 
 
@@ -55,7 +54,7 @@ def s2(G, oracle):
 
     return G
 
-def find_obvious_cuts(G, L):
+def find_obvious_cuts(G, L=None):
     """
     Find obvious cuts between adjacent verts of different labels.
 
@@ -63,11 +62,18 @@ def find_obvious_cuts(G, L):
     ----------
     G : nx.Graph
         The input graph, with nodes with known label marked with the data attribute `label`.
-    L : list of (vert, label)
+    L : optional list of (vert, label)
         A list of tuples of vertices with known labels, and their corresponding label.
+
+        Is only used to accelerate slightly so we don't have to re-search the graph; if None,
+        we do our own search for `label`s.
     """
     
-    labeled_nodes = [l[0] for l in L]
+    if L is None:
+        labeled_nodes = [v[0] for v in G.nodes_iter(data=True) if v[1].get('label') is not None]
+    else:
+        labeled_nodes = [l[0] for l in L]
+
     labeled_subgraph = G.subgraph(labeled_nodes)
 
     cuts = []
