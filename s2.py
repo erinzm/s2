@@ -34,6 +34,8 @@ def s2(G, oracle):
     L = []
 
     while True:
+        if len(L) == n:
+            break
 
         # pick a random vertex
         vert = random.choice(G.nodes())
