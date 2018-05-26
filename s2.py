@@ -26,9 +26,7 @@ def s2(G, oracle):
     oracle : fn(vertex) -> bool
         An oracle function, taking a vertex and returning the label as a `bool`.
     """
-
-    # relabel the graph with IDs
-    G = nx.convert_node_labels_to_integers(G, label_attribute='_old_id')
+    G = G.copy()
 
     # number of vertices
     n = G.order()
