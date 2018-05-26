@@ -17,7 +17,7 @@ import random
 
 def s2(G, oracle):
     """
-    Runs the S² algorithm on a graph, returning the cut set.
+    Runs the S² algorithm on a graph, returning the unzipped graph.
 
     Parameters
     ----------
@@ -50,6 +50,7 @@ def s2(G, oracle):
             G.remove_edges_from(cuts)
 
 
+    return G
 
 def find_obvious_cuts(G):
     """
