@@ -35,15 +35,18 @@ def s2(G, oracle):
     L = []
 
     while True:
-        # pick a random point and query it
-        rand_vertex = random.choice(G.nodes())
-        y = oracle(rand_vert)
-        # add it to the labelled set
-        L.append((rand_vert, y))
-        # mark it as labelled
-        G.node[rand_vert]['label'] = y
+
+        # pick a random vertex
+        vert = random.choice(G.nodes())
 
         while True:
+            # query the current vertex
+            y = oracle(vert)
+            # add the current vertex to the labeled set
+            L.append((vert, y))
+            # mark it as labeled
+            G.node[vert]['label'] = y
+
             # find obvious cuts
             cuts = find_obvious_cuts(G, L)
             # unzip
