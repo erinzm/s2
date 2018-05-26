@@ -12,9 +12,10 @@ Implements S², an Efficient Graph-Based Active Learning Algorithm.
 
 import networkx as nx
 import random
+import itertools
 
 
-def s2(G, oracle):
+def s2(G, oracle, shortest_path):
     """
     Runs the S² algorithm on a graph, returning the unzipped graph.
 
@@ -24,6 +25,9 @@ def s2(G, oracle):
         The input graph to the algorithm.
     oracle : fn(vertex) -> bool
         An oracle function, taking a vertex and returning the label as a `bool`.
+    shortest_path : fn(G : nx.Graph, u : vertex, v : vertex) -> list of vertices or `None`
+        A function which, given a graph and a pair of vertices, returns a path between the pair of vertices, or
+        None if one cannot be found.
     """
     G = G.copy()
 
@@ -53,6 +57,12 @@ def s2(G, oracle):
             # unzip
             G.remove_edges_from(cuts)
 
+            # try to pick a new vertex via midpoint of shortest shortest path
+            vert = find_mssp(G, L, shortest_path)
+
+            # if it's bad, break out of the inner loop and get a new random vert
+            if vert is None:
+                break
 
     return G
 
