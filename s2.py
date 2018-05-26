@@ -45,14 +45,14 @@ def s2(G, oracle):
 
         while True:
             # find obvious cuts
-            cuts = find_obvious_cuts(G)
+            cuts = find_obvious_cuts(G, L)
             # unzip
             G.remove_edges_from(cuts)
 
 
     return G
 
-def find_obvious_cuts(G):
+def find_obvious_cuts(G, L):
     """
     Find obvious cuts between adjacent verts of different labels.
 
@@ -60,14 +60,17 @@ def find_obvious_cuts(G):
     ----------
     G : nx.Graph
         The input graph, with nodes with known label marked with the data attribute `label`.
+    L : list of (vert, label)
+        A list of tuples of vertices with known labels, and their corresponding label.
     """
     
-    cuts = []
-
-    labeled_nodes = [v[0] for v in G.nodes_iter(data=True) if v[1].get('label') is not None]
-
+    labeled_nodes = [l[0] for l in L]
     labeled_subgraph = G.subgraph(labeled_nodes)
+
+    cuts = []
+    # for every pair of labeled vertices
     for edge in labeled_subgraph.edges_iter():
+        # for every cut pair of labels
         if G.node[edge[0]]['label'] != G.node[edge[1]]['label']:
             cuts.append(edge)
 
