@@ -1,6 +1,6 @@
 import networkx as nx
 import matplotlib.pyplot as plt
-from s2 import s2
+from s2 import s2, path_midpoint, enumerate_find_ssp
 
 def test_simple_lattice():
     G = nx.grid_2d_graph(5, 5)
@@ -8,7 +8,7 @@ def test_simple_lattice():
     def oracle(vert):
         return (vert[0] < 3) and (vert[1] < 3)
 
-    G_cut = s2(G, oracle, nx.shortest_path)
+    G_cut = s2(G, oracle, lambda G, U, V: path_midpoint(enumerate_find_ssp(G, U, V)))
 
     fig = plt.figure()
     fig.add_subplot(121).title.set_text('Ground-truth')

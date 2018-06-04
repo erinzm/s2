@@ -15,7 +15,7 @@ import random
 import itertools
 
 
-def s2(G, oracle, shortest_path):
+def s2(G, oracle, find_moss):
     """
     Runs the S² algorithm on a graph, returning the unzipped graph.
 
@@ -25,40 +25,44 @@ def s2(G, oracle, shortest_path):
         The input graph to the algorithm.
     oracle : fn(vertex) -> bool
         An oracle function, taking a vertex and returning the label as a `bool`.
-    shortest_path : fn(G : nx.Graph, u : vertex, v : vertex) -> list of vertices or `None`
-        A function which, given a graph and a pair of vertices, returns a path between the pair of vertices, or
-        None if one cannot be found.
+    find_moss : fn(G : nx.Graph, U : [vertex], V : [vertex]) -> list of vertices or `None`
+        A function which, given a graph and two sets of vertices, returns the Midpoint Of the Shortest Shortest path
+        between any pair of vertices across these two sets.
     """
     G = G.copy()
 
     # number of vertices
     n = G.order()
 
-    # labeled set. represented as a list of (vert, label) pairs.
-    L = []
+    # labeled sets. U is positively labeled vertices, V is negatively labeled.
+    U = set()
+    V = set()
 
     while True:
-        if len(L) == n:
+        if len(U) + len(V) == n:
             break
 
-        # pick a random vertex
+        # pick a random vertex that we haven't seen before
         vert = random.choice(G.nodes())
+        if vert in U or vert in V:
+            continue
 
         while True:
             # query the current vertex
             y = oracle(vert)
-            # add the current vertex to the labeled set
-            L.append((vert, y))
+            # add the current vertex to one of the labeled sets
+            {True: U, False: V}[y].add(vert)
             # mark it as labeled
             G.node[vert]['label'] = y
 
+
             # find obvious cuts
-            cuts = find_obvious_cuts(G, L)
+            cuts = find_obvious_cuts(G, [(i, True) for i in U] + [(i, False) for i in V])
             # unzip
             G.remove_edges_from(cuts)
 
             # try to pick a new vertex via midpoint of shortest shortest path
-            vert = find_mssp(G, L, shortest_path)
+            vert = find_moss(G, U, V)
 
             # if it's bad, break out of the inner loop and get a new random vert
             if vert is None:
@@ -97,27 +101,24 @@ def find_obvious_cuts(G, L=None):
 
     return cuts
 
-def find_mssp(G, L, shortest_path):
-    ssp = find_ssp(G, L, shortest_path)
-    if ssp is None:
+def path_midpoint(path):
+    if path is None:
         return None
 
-    return ssp[len(ssp)//2]
+    return path[len(path)//2]
 
-def find_ssp(G, L, shortest_path):
-    labeled_nodes = [l[0] for l in L]
+def enumerate_find_ssp(G, U, V):
     paths = []
-    # for every pair of labeled vertices
-    for (u, v) in itertools.combinations(labeled_nodes, r=2):
-        # for every cut pair of labels
-        if G.node[u]['label'] != G.node[v]['label']:
-            try:
-                P = shortest_path(G, u, v)
-            except nx.NetworkXNoPath:
-                # we don't have a path, so skip adding it to the list
-                continue
 
-            paths.append(P)
+    # for every pair of labeled vertices
+    for (u, v) in itertools.product(U, V):
+        try:
+            P = nx.shortest_path(G, u, v)
+        except nx.NetworkXNoPath:
+            # we don't have a path, so skip adding it to the list
+            continue
+
+        paths.append(P)
 
     # if we found no paths, return None
     if paths == []:
