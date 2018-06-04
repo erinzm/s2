@@ -3,10 +3,10 @@ import matplotlib.pyplot as plt
 from s2 import s2, path_midpoint, enumerate_find_ssp
 
 def test_simple_lattice():
-    G = nx.grid_2d_graph(5, 5)
+    G = nx.grid_2d_graph(10, 10)
 
     def oracle(vert):
-        return (vert[0] < 3) and (vert[1] < 3)
+        return ((vert[0] < 3) and (vert[1] < 3)) or ((vert[0] > 6) and (vert[1] > 6))
 
     G_cut = s2(G, oracle, lambda G, U, V: path_midpoint(enumerate_find_ssp(G, U, V)))
 
