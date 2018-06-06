@@ -108,6 +108,16 @@ def path_midpoint(path):
     return path[len(path)//2]
 
 def enumerate_find_ssp(G, U, V):
+    """
+    Finds all shortest paths between pairs of vertices spanning U and V, and returns the shortest one.
+
+    Time complexity is something like
+        O(|U|*|V| * n log n) ≈ O((n/2)^2 * n log n) = O(n^3 log n)
+    where n = |U| + |V|.
+
+    Probably don't use this, _especially_ if you have a lattice graph.
+    """
+
     paths = []
 
     # for every pair of labeled vertices
