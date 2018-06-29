@@ -6,5 +6,5 @@ def draw_labeled_graph(G, oracle):
         return 'r' if l > 0 else 'b'
 
     nx.draw(G,
-        pos={n: n for n in G.nodes_iter()},
-        node_color=[label_to_color(oracle(n)) for n in G.nodes_iter()])
+        pos={n: n for n in G.nodes()},
+        node_color=[label_to_color(oracle(n)) for n in G.nodes()])

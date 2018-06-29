@@ -43,7 +43,7 @@ def s2(G, oracle, find_moss):
             break
 
         # pick a random vertex that we haven't seen before
-        vert = random.choice(G.nodes())
+        vert = random.choice(list(G.nodes()))
         if vert in U or vert in V:
             continue
 
@@ -86,7 +86,7 @@ def find_obvious_cuts(G, L=None):
     """
     
     if L is None:
-        labeled_nodes = [v[0] for v in G.nodes_iter(data=True) if v[1].get('label') is not None]
+        labeled_nodes = [v[0] for v in G.nodes(data=True) if v[1].get('label') is not None]
     else:
         labeled_nodes = [l[0] for l in L]
 
@@ -94,7 +94,7 @@ def find_obvious_cuts(G, L=None):
 
     cuts = []
     # for every pair of labeled vertices
-    for edge in labeled_subgraph.edges_iter():
+    for edge in labeled_subgraph.edges():
         # for every cut pair of labels
         if G.node[edge[0]]['label'] != G.node[edge[1]]['label']:
             cuts.append(edge)
