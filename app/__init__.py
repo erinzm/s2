@@ -13,5 +13,7 @@ def make_app() -> Flask:
     return app
 
 def register_extensions(app: Flask):
+    from .db import db
+    db.init_app(app)
     from .extensions import toolbar
     toolbar.init_app(app)
