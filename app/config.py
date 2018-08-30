@@ -2,6 +2,7 @@ import os
 
 class Config:
     DEBUG = False
+    DATABASE_URL = os.environ.get("DATABASE_URL", "postgres://localhost/s2")
 
 class ProdConfig(Config):
     pass
