@@ -11,16 +11,10 @@ def make_app() -> Flask:
     app.config.from_object(config)
 
     register_extensions(app)
-
-    return app
-
-def register_extensions(app: Flask):
-    from .db import db
-    db.init_app(app)
-    from .extensions import toolbar
-    toolbar.init_app(app)
-            pass
-        return '<body></body>'
+    app.cli.add_command(init_db)
+    
+    from .views import views
+    app.register_blueprint(views)
 
     return app
 
