@@ -20,7 +20,7 @@ class Postgres(object):
         conn = getattr(ctx, 'postgres_conn', None)
         if conn is not None:
             self.pool.putconn(conn)
-            del ctx.conn
+            del ctx.postgres_conn
     
     def _connect(self):
         return self.pool.getconn()
