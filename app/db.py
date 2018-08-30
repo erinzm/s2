@@ -32,5 +32,8 @@ class Postgres(object):
             if not hasattr(ctx, 'postgres_conn'):
                 ctx.postgres_conn = self._connect()
             return ctx.postgres_conn
+    
+    def cursor(self):
+        return self.connection.cursor()
 
 db = Postgres()
