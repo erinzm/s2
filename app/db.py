@@ -26,7 +26,7 @@ class Postgres(object):
         return self.pool.getconn()
     
     @property
-    def connection():
+    def connection(self):
         ctx = _app_ctx_stack.top
         if ctx is not None:
             if not hasattr(ctx, 'postgres_conn'):
