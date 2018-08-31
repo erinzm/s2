@@ -1,6 +1,4 @@
-import click
-from flask import Flask, current_app
-from flask.cli import with_appcontext
+from flask import Flask
 from flask.helpers import get_debug_flag
 from .config import DevConfig, ProdConfig
 
@@ -11,7 +9,8 @@ def make_app() -> Flask:
     app.config.from_object(config)
 
     register_extensions(app)
-    app.cli.add_command(init_db)
+    from .cli import register_cli
+    register_cli(app)
     
     from .views import views
     app.register_blueprint(views)
@@ -23,13 +22,3 @@ def register_extensions(app: Flask):
     db.init_app(app)
     from .extensions import toolbar
     toolbar.init_app(app)
-
-@click.command('init-db')
-@with_appcontext
-def init_db():
-    click.echo(click.style('[!] initializing database', fg='green'))
-    from .db import db
-    with db.connection as conn:
-        with conn.cursor() as c:
-            with current_app.open_resource('schema.sql', 'r') as f:
-                c.execute(f.read())
