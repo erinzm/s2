@@ -6,7 +6,7 @@ def load_image(fp) -> np.ndarray:
     image = Image.open(fp)
     return np.asarray(image).astype('float')
 
-def generate_image(base_image: np.ndarray, weights: np.ndarray, bases: List[np.ndarray]):
+def perturb_image(base_image: np.ndarray, weights: np.ndarray, bases: List[np.ndarray]):
     perturbation = np.zeros_like(base_image)
     assert(all(base_image.shape == base.shape for base in bases))
     
