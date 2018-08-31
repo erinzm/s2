@@ -9,12 +9,25 @@ CREATE TABLE images (
 );
 
 CREATE TABLE nodes (
-    id bigserial PRIMARY KEY,
+    id bigint NOT NULL,
     exp_id bigint REFERENCES experiments(id) NOT NULL,
-    image_id bigint REFERENCES images(id) NOT NULL,
+    graph_id bigint REFERENCES images(id) NOT NULL,
     
     basis_weights float[] NOT NULL,
-    label integer NOT NULL
+    label integer NOT NULL,
+
+    PRIMARY KEY (exp_id, graph_id, id)
+);
+
+CREATE TABLE edges (
+    exp_id bigint NOT NULL,
+    graph_id bigint NOT NULL,
+
+    i bigint NOT NULL,
+    j bigint NOT NULL,
+
+    FOREIGN KEY (exp_id, graph_id, i) REFERENCES nodes(exp_id, graph_id, id),
+    FOREIGN KEY (exp_id, graph_id, j) REFERENCES nodes(exp_id, graph_id, id)
 );
 
 CREATE TABLE bases (
@@ -25,9 +38,12 @@ CREATE TABLE bases (
 
 CREATE TYPE jobstatus AS ENUM ('unassigned', 'waiting', 'completed');
 CREATE TABLE jobs (
-    exp_id bigint REFERENCES experiments(id) NOT NULL,
-    node_id bigint REFERENCES nodes(id) NOT NULL,
+    exp_id bigint NOT NULL,
+    graph_id bigint NOT NULL,
+    node_id bigint NOT NULL,
     
     ballot_id int NOT NULL,
-    status jobstatus NOT NULL
+    status jobstatus NOT NULL,
+
+    FOREIGN KEY (exp_id, graph_id, node_id) REFERENCES nodes (exp_id, graph_id, id)
 );
