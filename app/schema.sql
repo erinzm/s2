@@ -13,7 +13,7 @@ CREATE TABLE nodes (
     exp_id bigint REFERENCES experiments(id) NOT NULL,
     image_id bigint REFERENCES images(id) NOT NULL,
     
-    basis_coordinates integer[] NOT NULL,
+    basis_weights float[] NOT NULL,
     label integer NOT NULL
 );
 
