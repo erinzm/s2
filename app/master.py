@@ -25,8 +25,17 @@ class S2:
             assert self.n_nodes != 0
             assert self.n_edges != 0
 
-    def get_query(self) -> int:
-        pass
+    def get_query(self, db) -> int:
+        with db.cursor() as c:
+            # random sampling
+            # TODO: activity
+            c.execute('''
+            SELECT id FROM nodes
+            WHERE exp_id = %s
+            OFFSET floor(random()*%s)
+            LIMIT 1
+            ''', (self.exp_id, self.n_nodes))
+            return c.fetchone()[0]
     
     def __repr__(self) -> str:
         return f'<S² #v: {self.n_nodes}, #e: {self.n_edges}>'
