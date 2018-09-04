@@ -21,9 +21,11 @@ def init_db():
 
 @click.command('launch-experiment')
 @click.argument('experiment_dir', type=click.Path(exists=True, file_okay=False))
+@click.option('--required-votes', default=3)
 @with_appcontext
-def launch_experiment(experiment_dir):
+def launch_experiment(experiment_dir, required_votes):
     from .db import db
+    from .master import Status, S2
 
     experiment_dir = Path(experiment_dir)
     with db.connection as conn:
@@ -37,7 +39,7 @@ def launch_experiment(experiment_dir):
                 # push the base image
                 with conn.cursor() as c:
                     c.execute('INSERT INTO images (exp_id, uri) VALUES (%s, %s) RETURNING id', (exp_id, str(x / 'image.png')))
-                    image_id = c.fetchone()[0]
+                    graph_id = image_id = c.fetchone()[0]
                 
                 # push bases
                 bases = list(x.glob('basis_*.png'))
@@ -50,7 +52,7 @@ def launch_experiment(experiment_dir):
                     records = []
                     for row in reader:
                         id, *weights = row
-                        records.append((exp_id, image_id, int(id), [int(w) for w in weights]))
+                        records.append((exp_id, graph_id, int(id), [int(w) for w in weights]))
                     with conn.cursor() as c:
                         psycopg2.extras.execute_values(c, 'INSERT INTO nodes (exp_id, graph_id, id, basis_weights) VALUES %s',
                             records)
@@ -61,7 +63,20 @@ def launch_experiment(experiment_dir):
                     records = []
                     for row in reader:
                         i, j = map(int, row)
-                        records.append((exp_id, image_id, i, j))
+                        records.append((exp_id, graph_id, i, j))
                     with conn.cursor() as c:
                         psycopg2.extras.execute_values(c, 'INSERT INTO edges (exp_id, graph_id, i, j) VALUES %s',
                             records)
+        
+                # first query & push jobs
+                s2 = S2(conn, exp_id, graph_id)
+                node_id = s2.get_query(conn)
+                jobs = []
+                for ballot_id in range(required_votes):
+                    jobs.extend([
+                        (exp_id, graph_id, node_id, ballot_id, Status.UNASSIGNED)
+                    ])
+
+                with conn.cursor() as c:
+                    psycopg2.extras.execute_values(c, 'INSERT INTO jobs (exp_id, graph_id, node_id, ballot_id, status) VALUES %s',
+                        jobs)
