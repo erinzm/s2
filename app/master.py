@@ -50,6 +50,7 @@ class Master:
         with db.cursor() as c:
             c.execute("SELECT COUNT(*) FROM jobs WHERE exp_id = %s AND status = 'unassigned'", (self.exp_id,))
             n_jobs = c.fetchone()[0]
+            logger.debug(f'{n_jobs} unassigned jobs available')
 
             # TODO: handle empty job list
             if n_jobs == 0:
@@ -78,6 +79,8 @@ class Master:
                         for job in jobs]
 
             opt_job = max(jobs, key=operator.itemgetter('priority'))
+
+            logger.debug(f'found optimal job: {opt_job}')
 
             # switch this job to WAITING
             c.execute("UPDATE jobs SET status = 'waiting' WHERE id = %s",
