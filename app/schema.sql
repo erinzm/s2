@@ -38,6 +38,8 @@ CREATE TABLE bases (
 
 CREATE TYPE jobstatus AS ENUM ('unassigned', 'waiting', 'completed');
 CREATE TABLE jobs (
+    id bigserial PRIMARY KEY,
+
     exp_id bigint NOT NULL,
     graph_id bigint NOT NULL,
     node_id bigint NOT NULL,
