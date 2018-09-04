@@ -1,6 +1,7 @@
-from flask import Blueprint, render_template, escape, jsonify
+from flask import Blueprint, render_template, escape
 from .master import S2, Master
 from .db import db
+import json
 
 views = Blueprint('views', __name__)
 
@@ -13,9 +14,8 @@ def get_query(exp_id):
             return 0
         user_id = 0
         job = master.get_job_for(conn, user_id, priority)
-        print(job)
 
-    return render_template('query.html', job=jsonify(job))
+    return render_template('query.html', job=json.dumps(job))
 
 @views.route('/exp/<int:exp_id>/graph/<int:graph_id>')
 def graph_info(exp_id, graph_id):
