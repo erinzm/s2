@@ -3,6 +3,7 @@ from flask import Flask, current_app
 from flask.cli import with_appcontext
 from pathlib import Path
 import psycopg2.extras
+import csv
 
 def register_cli(app: Flask):
     app.cli.add_command(init_db)
@@ -40,6 +41,27 @@ def launch_experiment(experiment_dir):
                 
                 # push bases
                 bases = list(x.glob('basis_*.png'))
-                print(bases)
                 with conn.cursor() as c:
                     psycopg2.extras.execute_values(c, 'INSERT INTO bases (image_id, uri) VALUES %s', [(image_id, str(p)) for p in bases])
+                
+                # push nodes
+                with open(x/'nodes.csv') as f:
+                    reader = csv.reader(f)
+                    records = []
+                    for row in reader:
+                        id, *weights = row
+                        records.append((exp_id, image_id, int(id), [int(w) for w in weights]))
+                    with conn.cursor() as c:
+                        psycopg2.extras.execute_values(c, 'INSERT INTO nodes (exp_id, graph_id, id, basis_weights) VALUES %s',
+                            records)
+                
+                # push edges
+                with open(x/'edges.csv') as f:
+                    reader = csv.reader(f)
+                    records = []
+                    for row in reader:
+                        i, j = map(int, row)
+                        records.append((exp_id, image_id, i, j))
+                    with conn.cursor() as c:
+                        psycopg2.extras.execute_values(c, 'INSERT INTO edges (exp_id, graph_id, i, j) VALUES %s',
+                            records)

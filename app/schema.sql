@@ -14,7 +14,7 @@ CREATE TABLE nodes (
     graph_id bigint REFERENCES images(id) NOT NULL,
     
     basis_weights float[] NOT NULL,
-    label integer NOT NULL,
+    label integer NULL,
 
     PRIMARY KEY (exp_id, graph_id, id)
 );
