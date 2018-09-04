@@ -70,7 +70,7 @@ class Master:
                     'node_id': node_id,
                     'ballot_id': ballot_id,
                 }
-                for job_id, graph_id, node_id, ballot_id in c.fetchall()
+                for job_id, graph_id, node_id, ballot_id in c
             ]
 
             state = None # TODO: uggghhh
