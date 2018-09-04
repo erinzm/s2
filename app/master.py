@@ -57,11 +57,12 @@ class Master:
 
             c.execute('''
             SELECT
-                (id, graph_id, node_id, ballot_id)
+                id, graph_id, node_id, ballot_id
             FROM jobs
             WHERE exp_id = %s
-              AND status = 'not_assigned'
+              AND status = 'unassigned'
             ''', (self.exp_id,))
+
             jobs = [
                 {
                     'job_id': job_id,
