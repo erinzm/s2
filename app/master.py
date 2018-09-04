@@ -48,7 +48,7 @@ class Master:
         logger.debug(f'getting job in experiment {self.exp_id} for {user_id}')
 
         with db.cursor() as c:
-            c.execute('SELECT COUNT(*) FROM jobs WHERE exp_id = %s', (self.exp_id,))
+            c.execute("SELECT COUNT(*) FROM jobs WHERE exp_id = %s AND status = 'unassigned'", (self.exp_id,))
             n_jobs = c.fetchone()[0]
 
             # TODO: handle empty job list
