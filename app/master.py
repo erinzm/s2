@@ -81,6 +81,6 @@ class Master:
 
             # switch this job to WAITING
             c.execute("UPDATE jobs SET status = 'waiting' WHERE id = %s",
-                      opt_job['job']['job_id'])
+                      (opt_job['job']['job_id'],))
             
             return opt_job['job']
