@@ -1,7 +1,10 @@
 from flask import Blueprint, render_template, escape
-from .master import S2, Master
-from .db import db
 import json
+import numpy as np
+from .master import S2, Master
+from .db import db, uri_for_image
+from PIL import Image
+from .imgen import as_base64_png
 
 views = Blueprint('views', __name__)
 
@@ -11,11 +14,15 @@ def get_query(exp_id):
         master = Master(conn, exp_id)
 
         def priority(job, user_id, state):
-            return 0
+            return np.random.randn()
         user_id = 0
         job = master.get_job_for(conn, user_id, priority)
 
-    return render_template('query.html', job=json.dumps(job))
+        img = Image.open(uri_for_image(conn, exp_id, job['graph_id']))
+
+    return render_template('query.html',
+        job=json.dumps(job),
+        image=as_base64_png(img))
 
 @views.route('/exp/<int:exp_id>/graph/<int:graph_id>')
 def graph_info(exp_id, graph_id):
