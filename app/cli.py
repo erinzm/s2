@@ -12,12 +12,14 @@ def register_cli(app: Flask):
 @click.command('init-db')
 @with_appcontext
 def init_db():
-    click.echo(click.style('[!] initializing database', fg='green'))
+    click.echo('[!] initializing database')
     from .db import db
     with db.connection as conn:
         with conn.cursor() as c:
             with current_app.open_resource('schema.sql', 'r') as f:
                 c.execute(f.read())
+    click.echo(click.style(f'[✔] successfully initialized database', fg='green'))
+
 
 @click.command('launch-experiment')
 @click.argument('experiment_dir', type=click.Path(exists=True, file_okay=False))
@@ -26,6 +28,8 @@ def init_db():
 def launch_experiment(experiment_dir, required_votes):
     from .db import db
     from .master import Status, S2
+
+    click.echo('[!] launching experiment...')
 
     experiment_dir = Path(experiment_dir)
     with db.connection as conn:
@@ -80,3 +84,5 @@ def launch_experiment(experiment_dir, required_votes):
                 with conn.cursor() as c:
                     psycopg2.extras.execute_values(c, 'INSERT INTO jobs (exp_id, graph_id, node_id, ballot_id, status) VALUES %s',
                         jobs)
+    
+    click.echo(click.style(f'[✔] successfully launched experiment ({exp_id})', fg='green'))
