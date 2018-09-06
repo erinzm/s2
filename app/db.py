@@ -37,3 +37,8 @@ class Postgres(object):
         return self.connection.cursor()
 
 db = Postgres()
+
+def uri_for_image(db, exp_id: int, img_id: int) -> str:
+    with db.cursor() as c:
+        c.execute('SELECT uri FROM images WHERE exp_id = %s AND id = %s', (exp_id, img_id,))
+        return c.fetchone()[0]
