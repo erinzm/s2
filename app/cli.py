@@ -48,7 +48,9 @@ def launch_experiment(experiment_dir, required_votes):
                 # push bases
                 bases = list(x.glob('basis_*.png'))
                 with conn.cursor() as c:
-                    psycopg2.extras.execute_values(c, 'INSERT INTO bases (image_id, uri) VALUES %s', [(image_id, str(p)) for p in bases])
+                    psycopg2.extras.execute_values(c,
+                        'INSERT INTO bases (exp_id, image_id, uri) VALUES %s',
+                        [(exp_id, image_id, str(p)) for p in bases])
                 
                 # push nodes
                 with open(x/'nodes.csv') as f:

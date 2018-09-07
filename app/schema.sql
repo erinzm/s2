@@ -32,6 +32,7 @@ CREATE TABLE edges (
 
 CREATE TABLE bases (
     id bigserial PRIMARY KEY,
+    exp_id bigint REFERENCES experiments(id) NOT NULL,
     image_id bigint REFERENCES images(id) NOT NULL,
     uri VARCHAR NOT NULL
 );
