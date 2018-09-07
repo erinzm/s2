@@ -48,3 +48,8 @@ def get_basis_uris(db, exp_id: int, img_id: int) -> List[str]:
     with db.cursor() as c:
         c.execute('SELECT uri FROM bases WHERE exp_id = %s AND image_id = %s ORDER BY id ASC', (exp_id, img_id))
         return [x[0] for x in c]
+
+def basis_weights_for_node(db, exp_id: int, node_id: int) -> List[float]:
+    with db.cursor() as c:
+        c.execute('SELECT basis_weights FROM nodes WHERE exp_id = %s AND id = %s', (exp_id, node_id))
+        return c.fetchone()[0]
