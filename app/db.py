@@ -1,3 +1,4 @@
+from typing import List
 import psycopg2
 from psycopg2.pool import ThreadedConnectionPool
 from flask import _app_ctx_stack
@@ -42,3 +43,8 @@ def uri_for_image(db, exp_id: int, img_id: int) -> str:
     with db.cursor() as c:
         c.execute('SELECT uri FROM images WHERE exp_id = %s AND id = %s', (exp_id, img_id,))
         return c.fetchone()[0]
+
+def get_basis_uris(db, exp_id: int, img_id: int) -> List[str]:
+    with db.cursor() as c:
+        c.execute('SELECT uri FROM bases WHERE exp_id = %s AND image_id = %s ORDER BY id ASC', (exp_id, img_id))
+        return [x[0] for x in c]
