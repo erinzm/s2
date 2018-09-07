@@ -2,9 +2,9 @@ from flask import Blueprint, render_template, escape
 import json
 import numpy as np
 from .master import S2, Master
-from .db import db, uri_for_image
+from .db import db, uri_for_image, get_basis_uris
 from PIL import Image
-from .imgen import as_base64_png
+from .imgen import as_base64_png, load_image, perturb_image
 
 views = Blueprint('views', __name__)
 
@@ -18,7 +18,10 @@ def get_query(exp_id):
         user_id = 0
         job = master.get_job_for(conn, user_id, priority)
 
-        img = Image.open(uri_for_image(conn, exp_id, job['graph_id']))
+        x = load_image(uri_for_image(conn, exp_id, job['graph_id']))
+        bases = [load_image(uri) for uri in get_basis_uris(conn, exp_id, job['graph_id'])]
+        x̂ = perturb_image(x, [0, 0.5], bases)
+        img = Image.fromarray(x̂)
 
     return render_template('query.html',
         job=json.dumps(job),
