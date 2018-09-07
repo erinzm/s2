@@ -58,7 +58,7 @@ def launch_experiment(experiment_dir, required_votes):
                     records = []
                     for row in reader:
                         id, *weights = row
-                        records.append((exp_id, graph_id, int(id), [int(w) for w in weights]))
+                        records.append((exp_id, graph_id, int(id), [float(w) for w in weights]))
                     with conn.cursor() as c:
                         psycopg2.extras.execute_values(c, 'INSERT INTO nodes (exp_id, graph_id, id, basis_weights) VALUES %s',
                             records)
