@@ -1,5 +1,4 @@
-from flask import Blueprint, render_template, escape, request, abort
-import json
+from flask import Blueprint, render_template, escape, request, abort, redirect, url_for
 import numpy as np
 from .master import S2, Master
 from .db import db, uri_for_image, get_basis_uris, basis_weights_for_node
@@ -37,7 +36,7 @@ def complete_job(exp_id, job_id):
     if label not in [-1, 1]:
         abort(422, "label must be ∈ {-1, 1}")
     
-    return '', 200
+    return redirect(url_for(".get_query", exp_id=exp_id))
 
 
 @views.route('/exp/<int:exp_id>/graph/<int:graph_id>')
