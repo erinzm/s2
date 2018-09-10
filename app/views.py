@@ -25,7 +25,8 @@ def get_query(exp_id):
         img = Image.fromarray(x̂)
 
     return render_template('query.html',
-        job=json.dumps(job),
+        exp_id=exp_id,
+        job=job,
         image=as_base64_png(img))
 
 @views.route('/exp/<int:exp_id>/job/<int:job_id>', methods=['POST'])

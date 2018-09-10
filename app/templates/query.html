@@ -3,4 +3,9 @@
 {% block content %}
 {{job}}
 <img src="{{image}}" />
+
+<form action="{{url_for('views.complete_job', exp_id=exp_id, job_id=job['job_id'])}}" method="POST">
+    <button name="label" value="1">➕</button>
+    <button name="label" value="-1">➖</button>
+</form>
 {% endblock %}
