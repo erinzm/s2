@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, escape
+from flask import Blueprint, render_template, escape, request, abort
 import json
 import numpy as np
 from .master import S2, Master
@@ -27,6 +27,17 @@ def get_query(exp_id):
     return render_template('query.html',
         job=json.dumps(job),
         image=as_base64_png(img))
+
+@views.route('/exp/<int:exp_id>/graph/<int:graph_id>/node/<int:node_id>/label', methods=['POST'])
+def label_node(exp_id, graph_id, node_id):
+    if 'label' not in request.form:
+        abort(400, "label form parameter must be provided")
+    label = int(request.form['label'])
+    if label not in [-1, 1]:
+        abort(422, "label must be ∈ {-1, 1}")
+    
+    return '', 200
+
 
 @views.route('/exp/<int:exp_id>/graph/<int:graph_id>')
 def graph_info(exp_id, graph_id):
