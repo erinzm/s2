@@ -28,8 +28,8 @@ def get_query(exp_id):
         job=json.dumps(job),
         image=as_base64_png(img))
 
-@views.route('/exp/<int:exp_id>/graph/<int:graph_id>/node/<int:node_id>/label', methods=['POST'])
-def label_node(exp_id, graph_id, node_id):
+@views.route('/exp/<int:exp_id>/job/<int:job_id>', methods=['POST'])
+def complete_job(exp_id, job_id):
     if 'label' not in request.form:
         abort(400, "label form parameter must be provided")
     label = int(request.form['label'])
