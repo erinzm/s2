@@ -2,6 +2,7 @@ import os
 
 class Config:
     DEBUG = False
+    DEBUG_TB_INTERCEPT_REDIRECTS = False
     POSTGRES_URL = os.environ.get("POSTGRES_URL", "postgres://localhost/s2")
 
 class ProdConfig(Config):
