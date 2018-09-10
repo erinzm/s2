@@ -32,6 +32,7 @@ class S2:
             c.execute('''
             SELECT id FROM nodes
             WHERE exp_id = %s
+              AND label IS NULL
             OFFSET floor(random()*%s)
             LIMIT 1
             ''', (self.exp_id, self.n_nodes))
