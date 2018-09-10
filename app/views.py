@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, escape
 import json
 import numpy as np
 from .master import S2, Master
-from .db import db, uri_for_image, get_basis_uris
+from .db import db, uri_for_image, get_basis_uris, basis_weights_for_node
 from PIL import Image
 from .imgen import as_base64_png, load_image, perturb_image
 
@@ -20,7 +20,8 @@ def get_query(exp_id):
 
         x = load_image(uri_for_image(conn, exp_id, job['graph_id']))
         bases = [load_image(uri) for uri in get_basis_uris(conn, exp_id, job['graph_id'])]
-        x̂ = perturb_image(x, [0, 0.5], bases)
+        w = basis_weights_for_node(conn, exp_id, job['node_id'])
+        x̂ = perturb_image(x, w, bases)
         img = Image.fromarray(x̂)
 
     return render_template('query.html',
