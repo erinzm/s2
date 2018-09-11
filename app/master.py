@@ -50,13 +50,30 @@ class S2:
                 # TODO: activity
                 c.execute('''
                 SELECT id FROM nodes
-                WHERE exp_id = %s
-                AND label IS NULL
-                OFFSET floor(random()*%s)
-                LIMIT 1
+                    WHERE exp_id = %s
+                      AND label IS NULL
+                    OFFSET floor(random()*%s)
+                    LIMIT 1
                 ''', (self.exp_id, self.n_nodes))
                 return c.fetchone()[0]
+        elif self.state == 'mssp':
+            # try to find obvious cuts and cut them
+            self._perform_obvious_cuts(db)
+
+        else:
+            raise ValueError()
     
+    def _perform_obvious_cuts(self, db):
+        with db.cursor() as c:
+            c.execute('''
+            DELETE FROM edges edge USING nodes i, nodes j
+                WHERE edge.exp_id = %(exp_id)s AND edge.graph_id = %(graph_id)s
+                     AND i.exp_id = %(exp_id)s AND i.graph_id = %(graph_id)s
+                     AND j.exp_id = %(exp_id)s AND j.graph_id = %(graph_id)s
+                AND i.id = edge.i and j.id = edge.j
+                AND i.label <> j.label
+            ''', {'exp_id': self.exp_id, 'graph_id': self.graph_id})
+
     def __repr__(self) -> str:
         return f'<S² #v: {self.n_nodes}, #e: {self.n_edges}>'
 
