@@ -40,7 +40,8 @@ class S2:
             ''', (exp_id, exp_id))
             have_pair = c.fetchone()[0]
 
-        self.state = 'mssp' if have_pair else 'random_sampling'        
+        self.state = 'mssp' if have_pair else 'random_sampling'
+        logger.debug(f'S2({exp_id}, {graph_id}) constructed with state={self.state}')
 
     def get_query(self, db) -> int:
         if self.state == 'random_sampling':
@@ -122,9 +123,14 @@ class Master:
         majority_label = np.sign(sum_labels)
         logger.debug(f'voting done for {graph_id}:{node_id}, majority label is {majority_label}')
 
+        with db.cursor() as c:
+            # set the node's label
+            c.execute('UPDATE nodes SET label = %s WHERE exp_id = %s AND graph_id = %s AND id = %s', (int(majority_label), self.exp_id, graph_id, node_id))
+
         # run s2 again to get new jobs for this graph
         s2 = S2(db, self.exp_id, graph_id)
         new_node = s2.get_query(db)
+        logger.debug(f'getting new node for {graph_id}: {new_node}')
         jobs = [
             (self.exp_id, graph_id, new_node, ballot_id, Status.UNASSIGNED)
             for ballot_id in range(required_votes(db, self.exp_id))
