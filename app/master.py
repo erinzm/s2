@@ -14,8 +14,6 @@ class S2:
         self.exp_id = exp_id
         self.graph_id = graph_id
 
-        self.state = 'random_sampling'
-
         with db.cursor() as c:
             c.execute('''
             SELECT
@@ -38,6 +36,8 @@ class S2:
                        WHERE exp_id = %s and label=1)
             ''', (exp_id, exp_id))
             have_pair = c.fetchone()[0]
+
+        self.state = 'mssp' if have_pair else 'random_sampling'        
 
     def get_query(self, db) -> int:
         if self.state == 'random_sampling':
