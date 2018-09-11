@@ -1,6 +1,9 @@
 from typing import Callable
 import operator
 import logging
+import psycopg2.extras
+import numpy as np
+from .db import required_votes
 
 logger = logging.getLogger(__name__)
 
@@ -105,4 +108,28 @@ class Master:
             return opt_job['job']
 
     def voting_done(self, db, graph_id, node_id):
-        pass
+        # find the majority
+        with db.cursor() as c:
+            c.execute("""
+            SELECT sum(vote_label)
+                FROM jobs
+                WHERE exp_id = %s AND graph_id = %s AND node_id = %s
+            """, (self.exp_id, graph_id, node_id))
+
+            sum_labels = c.fetchone()[0]
+            assert sum_labels is not None
+        
+        majority_label = np.sign(sum_labels)
+        logger.debug(f'voting done for {graph_id}:{node_id}, majority label is {majority_label}')
+
+        # run s2 again to get new jobs for this graph
+        s2 = S2(db, self.exp_id, graph_id)
+        new_node = s2.get_query(db)
+        jobs = [
+            (self.exp_id, graph_id, new_node, ballot_id, Status.UNASSIGNED)
+            for ballot_id in range(required_votes(db, self.exp_id))
+        ]
+
+        with db.cursor() as c:
+            psycopg2.extras.execute_values(c, 'INSERT INTO jobs (exp_id, graph_id, node_id, ballot_id, status) VALUES %s',
+                jobs)

@@ -53,3 +53,8 @@ def basis_weights_for_node(db, exp_id: int, node_id: int) -> List[float]:
     with db.cursor() as c:
         c.execute('SELECT basis_weights FROM nodes WHERE exp_id = %s AND id = %s', (exp_id, node_id))
         return c.fetchone()[0]
+
+def required_votes(db, exp_id: int) -> int:
+    with db.cursor() as c:
+        c.execute('SELECT required_votes_per_node FROM experiments WHERE id = %s', (exp_id,))
+        return c.fetchone()[0]
