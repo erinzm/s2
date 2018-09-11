@@ -1,0 +1,19 @@
+version: '3'
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - POSTGRES_URL=postgres://s2:s2@postgres/s2
+    volumes:
+      - .:/src
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:10-alpine
+    environment:
+      - POSTGRES_DB=s2
+      - POSTGRES_USER=s2
+      - POSTGRES_PASSWORD=s2
