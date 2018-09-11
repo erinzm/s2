@@ -35,7 +35,7 @@ def launch_experiment(experiment_dir, required_votes):
     with db.connection as conn:
         # create a new experiment
         with conn.cursor() as c:
-            c.execute('INSERT INTO experiments DEFAULT VALUES RETURNING id')
+            c.execute('INSERT INTO experiments (required_votes_per_node) VALUES (%s) RETURNING id', (required_votes,))
             exp_id = c.fetchone()[0]
 
         for x in experiment_dir.iterdir():
@@ -77,11 +77,10 @@ def launch_experiment(experiment_dir, required_votes):
                 # first query & push jobs
                 s2 = S2(conn, exp_id, graph_id)
                 node_id = s2.get_query(conn)
-                jobs = []
-                for ballot_id in range(required_votes):
-                    jobs.extend([
-                        (exp_id, graph_id, node_id, ballot_id, Status.UNASSIGNED)
-                    ])
+                jobs = [
+                    (exp_id, graph_id, node_id, ballot_id, Status.UNASSIGNED)
+                    for ballot_id in range(required_votes)
+                ]
 
                 with conn.cursor() as c:
                     psycopg2.extras.execute_values(c, 'INSERT INTO jobs (exp_id, graph_id, node_id, ballot_id, status) VALUES %s',

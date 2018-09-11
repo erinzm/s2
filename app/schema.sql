@@ -1,5 +1,6 @@
 CREATE TABLE experiments (
-    id bigserial PRIMARY KEY
+    id bigserial PRIMARY KEY,
+    required_votes_per_node bigint
 );
 
 CREATE TABLE images (
