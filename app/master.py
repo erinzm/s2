@@ -14,6 +14,8 @@ class S2:
         self.exp_id = exp_id
         self.graph_id = graph_id
 
+        self.state = 'random_sampling'
+
         with db.cursor() as c:
             c.execute('''
             SELECT
@@ -25,18 +27,31 @@ class S2:
             assert self.n_nodes != 0
             assert self.n_edges != 0
 
-    def get_query(self, db) -> int:
-        with db.cursor() as c:
-            # random sampling
-            # TODO: activity
+            # do we have both -1 and +1 labelled nodes?
+            # note: this is faster than 'SELECT array_agg(label) @> '{-1,1}' FROM nodes WHERE exp_id = %s'
             c.execute('''
-            SELECT id FROM nodes
-            WHERE exp_id = %s
-              AND label IS NULL
-            OFFSET floor(random()*%s)
-            LIMIT 1
-            ''', (self.exp_id, self.n_nodes))
-            return c.fetchone()[0]
+            SELECT
+                EXISTS(SELECT 1 FROM nodes
+                       WHERE exp_id = %s AND label=-1)
+                AND
+                EXISTS(SELECT 1 FROM nodes
+                       WHERE exp_id = %s and label=1)
+            ''', (exp_id, exp_id))
+            have_pair = c.fetchone()[0]
+
+    def get_query(self, db) -> int:
+        if self.state == 'random_sampling':
+            with db.cursor() as c:
+                # pick a random node we know nothing about
+                # TODO: activity
+                c.execute('''
+                SELECT id FROM nodes
+                WHERE exp_id = %s
+                AND label IS NULL
+                OFFSET floor(random()*%s)
+                LIMIT 1
+                ''', (self.exp_id, self.n_nodes))
+                return c.fetchone()[0]
     
     def __repr__(self) -> str:
         return f'<S² #v: {self.n_nodes}, #e: {self.n_edges}>'
@@ -46,7 +61,7 @@ class Master:
         self.exp_id = exp_id
     
     def get_job_for(self, db, user_id, priority: Callable[..., float]):
-        logger.debug(f'getting job in experiment {self.exp_id} for {user_id}')
+        logger.debug(f'getting job in experiment {self.exp_id} for user {user_id}')
 
         with db.cursor() as c:
             c.execute("SELECT COUNT(*) FROM jobs WHERE exp_id = %s AND status = 'unassigned'", (self.exp_id,))
