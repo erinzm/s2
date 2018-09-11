@@ -49,6 +49,21 @@ def complete_job(exp_id, job_id):
             graph_id, node_id, ballot_id = c.fetchone()
             logger.debug(f'exp: {exp_id}, job: {job_id}, graph: {graph_id}, node: {node_id}, label: {label}, ballot: {ballot_id}')
 
+            # count uncompleted ballots
+            c.execute("""
+            SELECT count(*)
+            FROM jobs
+            WHERE exp_id = %s AND graph_id = %s AND node_id = %s
+              AND status <> 'completed'
+            """, (exp_id, graph_id, node_id))
+
+            n_votes_remaining = c.fetchone()[0]
+            logger.debug(f'there are {n_votes_remaining} votes for {graph_id}:{node_id} remaining')
+            if n_votes_remaining == 0: # we're done with this node
+                # tell the master
+                master = Master(conn, exp_id)
+                master.voting_done(conn, graph_id, node_id)
+
     return redirect(url_for(".get_query", exp_id=exp_id))
 
 

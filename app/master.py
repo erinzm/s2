@@ -88,3 +88,6 @@ class Master:
                       (opt_job['job']['job_id'],))
             
             return opt_job['job']
+
+    def voting_done(self, db, graph_id, node_id):
+        pass
