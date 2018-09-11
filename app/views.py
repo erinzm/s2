@@ -41,8 +41,10 @@ def complete_job(exp_id, job_id):
     
     with db.connection as conn:
         with conn.cursor() as c:
-            c.execute("UPDATE jobs SET status = 'completed' WHERE exp_id = %s AND id = %s", (exp_id, job_id))
+            # update this job to completed status and set the voted label
+            c.execute("UPDATE jobs SET status = 'completed', vote_label = %s WHERE exp_id = %s AND id = %s", (label, exp_id, job_id))
 
+            # find graph_id, node_id, ballot_id of job
             c.execute("SELECT graph_id, node_id, ballot_id FROM jobs WHERE exp_id = %s AND id = %s", (exp_id, job_id))
             graph_id, node_id, ballot_id = c.fetchone()
             logger.debug(f'exp: {exp_id}, job: {job_id}, graph: {graph_id}, node: {node_id}, label: {label}, ballot: {ballot_id}')

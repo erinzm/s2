@@ -46,6 +46,7 @@ CREATE TABLE jobs (
     node_id bigint NOT NULL,
     
     ballot_id int NOT NULL,
+    vote_label int NULL,
     status jobstatus NOT NULL,
 
     FOREIGN KEY (exp_id, graph_id, node_id) REFERENCES nodes (exp_id, graph_id, id)
