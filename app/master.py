@@ -49,13 +49,22 @@ class S2:
                 # pick a random node we know nothing about
                 # TODO: activity
                 c.execute('''
+                WITH nodes_of_interest AS (
                 SELECT id FROM nodes
                     WHERE exp_id = %s
+                        AND graph_id = %s
                       AND label IS NULL
-                    OFFSET floor(random()*%s)
+                )
+                SELECT id FROM nodes_of_interest
+                    OFFSET (SELECT floor(random()*count(*)) FROM nodes_of_interest)
                     LIMIT 1
-                ''', (self.exp_id, self.n_nodes))
-                return c.fetchone()[0]
+                ''', (self.exp_id, self.graph_id))
+
+                node_id = c.fetchone()[0]
+                logger.debug(f'got random node {node_id}')
+
+                return node_id
+
         elif self.state == 'mssp':
             # try to find obvious cuts and cut them
             self._perform_obvious_cuts(db)
