@@ -69,6 +69,9 @@ class S2:
             # try to find obvious cuts and cut them
             self._perform_obvious_cuts(db)
 
+            # try to pick a MSSP midpoint
+            vert = self._mssp(db)
+
         else:
             raise ValueError()
     
