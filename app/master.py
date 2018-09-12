@@ -74,6 +74,41 @@ class S2:
                 AND i.label <> j.label
             ''', {'exp_id': self.exp_id, 'graph_id': self.graph_id})
 
+    def _mssp(self, db):
+        with db.cursor() as c:
+            c.execute('''
+            WITH routes AS
+                ( SELECT *
+                    FROM pgr_dijkstra( 'SELECT id, i source, j target, 1 "cost", 1 "reverse_cost" FROM edges WHERE exp_id = %(exp_id)s AND graph_id = %(graph_id)s',
+                                    (SELECT array_agg(id)
+                                    FROM nodes
+                                    WHERE exp_id = %(exp_id)s
+                                        AND graph_id = %(graph_id)s
+                                        AND label = 1),
+                                    (SELECT array_agg(id)
+                                    FROM nodes
+                                    WHERE exp_id = %(exp_id)s
+                                        AND graph_id = %(graph_id)s
+                                        AND label = -1)) ),
+                routeCosts as (
+                    SELECT start_vid, end_vid, agg_cost
+                    FROM routes
+                    WHERE edge = -1
+                ),
+                shortestShortestPath AS (
+                    SELECT *
+                    FROM routes
+                    WHERE (start_vid, end_vid) = (SELECT start_vid, end_vid FROM routeCosts ORDER BY agg_cost ASC LIMIT 1)
+                )
+            SELECT node
+            FROM shortestShortestPath
+            WHERE path_seq = (select count(*)/2 from shortestShortestPath)
+            ''', {'exp_id': self.exp_id, 'graph_id': self.graph_id})
+            mssp = c.fetchone()[0]
+            logger.debug(f"[exp:{self.exp_id}] found MSSP! for {self.graph_id}: {mssp}")
+
+            return mssp
+
     def __repr__(self) -> str:
         return f'<S² #v: {self.n_nodes}, #e: {self.n_edges}>'
 
