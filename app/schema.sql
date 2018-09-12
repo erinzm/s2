@@ -1,3 +1,6 @@
+CREATE EXTENSION postgis;
+CREATE EXTENSION pgrouting;
+
 CREATE TABLE experiments (
     id bigserial PRIMARY KEY,
     required_votes_per_node bigint
@@ -10,7 +13,7 @@ CREATE TABLE images (
 );
 
 CREATE TABLE nodes (
-    id bigint NOT NULL,
+    id integer NOT NULL, -- integer to keep pgrouting happy :)
     exp_id bigint REFERENCES experiments(id) NOT NULL,
     graph_id bigint REFERENCES images(id) NOT NULL,
     
@@ -21,11 +24,13 @@ CREATE TABLE nodes (
 );
 
 CREATE TABLE edges (
+    id bigserial PRIMARY KEY,
+
     exp_id bigint NOT NULL,
     graph_id bigint NOT NULL,
 
-    i bigint NOT NULL,
-    j bigint NOT NULL,
+    i integer NOT NULL,
+    j integer NOT NULL,
 
     FOREIGN KEY (exp_id, graph_id, i) REFERENCES nodes(exp_id, graph_id, id),
     FOREIGN KEY (exp_id, graph_id, j) REFERENCES nodes(exp_id, graph_id, id)
