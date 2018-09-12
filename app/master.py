@@ -50,10 +50,10 @@ class S2:
                 # TODO: activity
                 c.execute('''
                 WITH nodes_of_interest AS (
-                SELECT id FROM nodes
-                    WHERE exp_id = %s
+                    SELECT id FROM nodes
+                        WHERE exp_id = %s
                         AND graph_id = %s
-                      AND label IS NULL
+                        AND label IS NULL
                 )
                 SELECT id FROM nodes_of_interest
                     OFFSET (SELECT floor(random()*count(*)) FROM nodes_of_interest)
@@ -72,6 +72,12 @@ class S2:
             # try to pick a MSSP midpoint
             vert = self._mssp(db)
 
+            # if we can't find one, we assume that we're done (two-separable-components assumption).
+            if vert is None:
+                pass
+
+            return vert
+
         else:
             raise ValueError()
     
@@ -85,7 +91,7 @@ class S2:
                 AND i.id = edge.i and j.id = edge.j
                 AND i.label <> j.label
             ''', {'exp_id': self.exp_id, 'graph_id': self.graph_id})
-
+    
     def _mssp(self, db):
         with db.cursor() as c:
             c.execute('''
@@ -114,9 +120,10 @@ class S2:
                 )
             SELECT node
             FROM shortestShortestPath
-            WHERE path_seq = (select count(*)/2 from shortestShortestPath)
+            WHERE path_seq = (select count(*)/2 + 1 from shortestShortestPath)
             ''', {'exp_id': self.exp_id, 'graph_id': self.graph_id})
-            mssp = c.fetchone()[0]
+            row = c.fetchone()
+            mssp = None if row is None else row[0]
             logger.debug(f"[exp:{self.exp_id}] found MSSP! for {self.graph_id}: {mssp}")
 
             return mssp
