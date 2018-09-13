@@ -20,16 +20,19 @@ def get_query(exp_id):
         user_id = 0
         job = master.get_job_for(conn, user_id, priority)
 
-        x = load_image(uri_for_image(conn, exp_id, job['graph_id']))
-        bases = [load_image(uri) for uri in get_basis_uris(conn, exp_id, job['graph_id'])]
-        w = basis_weights_for_node(conn, exp_id, job['node_id'])
-        x̂ = perturb_image(x, w, bases)
-        img = Image.fromarray(x̂)
+        if job is not None:
+            x = load_image(uri_for_image(conn, exp_id, job['graph_id']))
+            bases = [load_image(uri) for uri in get_basis_uris(conn, exp_id, job['graph_id'])]
+            w = basis_weights_for_node(conn, exp_id, job['node_id'])
+            x̂ = perturb_image(x, w, bases)
+            img = Image.fromarray(x̂)
+        else:
+            img = None
 
     return render_template('query.html',
         exp_id=exp_id,
         job=job,
-        image=as_base64_png(img))
+        image=img and as_base64_png(img))
 
 @views.route('/exp/<int:exp_id>/job/<int:job_id>', methods=['POST'])
 def complete_job(exp_id, job_id):

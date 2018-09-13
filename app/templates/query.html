@@ -1,11 +1,22 @@
-{% extends "layout.html" %}
+{%- extends "layout.html" %}
 
-{% block content %}
-{{job}}
-<img src="{{image}}" />
+{%- block content %}
+    {%- if job is not none %}
+        {{job}}
+        <img src="{{image}}" />
 
-<form action="{{url_for('views.complete_job', exp_id=exp_id, job_id=job['job_id'])}}" method="POST">
-    <button name="label" value="1">➕</button>
-    <button name="label" value="-1">➖</button>
-</form>
-{% endblock %}
+        <form action="{{url_for('views.complete_job', exp_id=exp_id, job_id=job['job_id'])}}" method="POST">
+            <button name="label" value="1">➕</button>
+            <button name="label" value="-1">➖</button>
+        </form>
+    {%- else %}
+        <p class="callout">No jobs currently available.</p>
+        <p class="sub-callout">periodically checking for more...</p>
+
+        <script>
+            setInterval(function() {
+                location.reload(true);
+            }, 10*1000);
+        </script>
+    {%- endif %}
+{%- endblock %}
