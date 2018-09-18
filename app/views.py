@@ -16,7 +16,7 @@ def get_query(exp_id):
         master = Master(conn, exp_id)
 
         def priority(job, user_id, state):
-            return np.random.randn()
+            return 0 # np.random.randn()
         user_id = 0
         job = master.get_job_for(conn, user_id, priority)
 
@@ -42,6 +42,7 @@ def complete_job(exp_id, job_id):
     if label not in [-1, 1]:
         abort(422, "label must be ∈ {-1, 1}")
     
+    ## TODO: move to master.py
     with db.connection as conn:
         with conn.cursor() as c:
             # update this job to completed status and set the voted label

@@ -1,6 +1,7 @@
 from typing import Callable
 import operator
 import logging
+from datetime import datetime, timedelta
 import psycopg2.extras
 import numpy as np
 from .db import required_votes
@@ -147,6 +148,19 @@ class Master:
             if n_jobs == 0:
                 return None
 
+            # Scan the job table for expired jobs and reinstate them
+            c.execute('''
+            UPDATE jobs
+            SET
+                status = 'unassigned',
+                checked_out_at = NULL
+            WHERE
+                checked_out_at + %(timeout)s < now()
+                AND exp_id = %(exp_id)s
+                AND status = 'waiting'
+            ''', {'timeout': timedelta(seconds=30), 'exp_id': self.exp_id})
+            logger.debug(f'[{self.exp_id}]: reset {c.rowcount} expired jobs to UNASSIGNED status')
+
             c.execute('''
             SELECT
                 id, graph_id, node_id, ballot_id
@@ -173,9 +187,9 @@ class Master:
 
             logger.debug(f'found optimal job: {opt_job}')
 
-            # switch this job to WAITING
-            c.execute("UPDATE jobs SET status = 'waiting' WHERE id = %s",
-                      (opt_job['job']['job_id'],))
+            # switch this job to WAITING and set the time we checked it out
+            c.execute("UPDATE jobs SET status = 'waiting', checked_out_at = %s WHERE id = %s",
+                      (datetime.now(), opt_job['job']['job_id'],))
             
             return opt_job['job']
 

@@ -3,7 +3,7 @@ CREATE EXTENSION pgrouting;
 
 CREATE TABLE experiments (
     id bigserial PRIMARY KEY,
-    required_votes_per_node bigint
+    required_votes_per_node bigint NOT NULL
 );
 
 CREATE TABLE images (
@@ -54,6 +54,7 @@ CREATE TABLE jobs (
     ballot_id int NOT NULL,
     vote_label int NULL,
     status jobstatus NOT NULL,
+    checked_out_at timestamp NULL,
 
     FOREIGN KEY (exp_id, graph_id, node_id) REFERENCES nodes (exp_id, graph_id, id)
 );
