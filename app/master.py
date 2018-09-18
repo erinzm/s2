@@ -29,16 +29,21 @@ class S2:
             assert self.n_nodes != 0
             assert self.n_edges != 0
 
+        with db.cursor() as c:
             # do we have both -1 and +1 labelled nodes?
             # note: this is faster than 'SELECT array_agg(label) @> '{-1,1}' FROM nodes WHERE exp_id = %s'
             c.execute('''
             SELECT
-                EXISTS(SELECT 1 FROM nodes
-                       WHERE exp_id = %s AND label=-1)
+                (EXISTS(SELECT 1 FROM nodes
+                       WHERE exp_id = %(exp_id)s
+                       AND graph_id = %(graph_id)s
+                       AND label=-1)
                 AND
                 EXISTS(SELECT 1 FROM nodes
-                       WHERE exp_id = %s and label=1)
-            ''', (exp_id, exp_id))
+                       WHERE exp_id = %(exp_id)s
+                       AND graph_id = %(graph_id)s
+                       AND label=1))
+            ''', {'exp_id': exp_id, 'graph_id': graph_id})
             have_pair = c.fetchone()[0]
 
         self.state = 'mssp' if have_pair else 'random_sampling'
@@ -68,9 +73,11 @@ class S2:
 
         elif self.state == 'mssp':
             # try to find obvious cuts and cut them
+            logger.debug('performing obvious cuts')
             self._perform_obvious_cuts(db)
 
             # try to pick a MSSP midpoint
+            logger.debug('picking an MSSP vertex')
             vert = self._mssp(db)
 
             # if we can't find one, we assume that we're done (two-separable-components assumption).
@@ -212,6 +219,8 @@ class Master:
             # set the node's label
             c.execute('UPDATE nodes SET label = %s WHERE exp_id = %s AND graph_id = %s AND id = %s', (int(majority_label), self.exp_id, graph_id, node_id))
 
+        db.commit()
+
         # run s2 again to get new jobs for this graph
         s2 = S2(db, self.exp_id, graph_id)
         new_node = s2.get_query(db)
@@ -224,3 +233,4 @@ class Master:
         with db.cursor() as c:
             psycopg2.extras.execute_values(c, 'INSERT INTO jobs (exp_id, graph_id, node_id, ballot_id, status) VALUES %s',
                 jobs)
+        
