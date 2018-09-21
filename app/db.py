@@ -1,4 +1,5 @@
 from typing import List
+from collections import defaultdict
 import psycopg2
 from psycopg2.pool import ThreadedConnectionPool
 from flask import _app_ctx_stack
@@ -59,21 +60,37 @@ def required_votes(db, exp_id: int) -> int:
         c.execute('SELECT required_votes_per_node FROM experiments WHERE id = %s', (exp_id,))
         return c.fetchone()[0]
 
-def naive_proportion_labeled(db, exp_id: int, graph_id: int) -> int:
+def graphs_percent_done(db, exp_id: int) -> defaultdict:
     with db.cursor() as c:
         c.execute('''
         WITH
-            graph_nodes AS (
-                SELECT id, label FROM nodes
+            exp_nodes AS (
+                SELECT id, graph_id, label FROM nodes
                 WHERE exp_id = %(exp_id)s
-                AND graph_id = %(graph_id)s),
-            labeled_nodes AS (
-                SELECT id FROM graph_nodes
-                WHERE label IS NOT NULL)
-        SELECT (
-            (SELECT COUNT(*) FROM labeled_nodes)::float
-            /
-            (SELECT COUNT(*) FROM graph_nodes)::float)
-        ''', {'exp_id': exp_id, 'graph_id': graph_id})
-        
-        return c.fetchone()[0]
+            ),
+            labeled AS (
+                SELECT graph_id, COUNT(*) FROM exp_nodes WHERE label IS NOT NULL GROUP BY graph_id
+            ),
+            total AS (
+                SELECT graph_id, COUNT(*) FROM exp_nodes GROUP BY graph_id
+            )
+        SELECT labeled.graph_id, (labeled.count::float / total.count::float) AS percent_done FROM labeled, total WHERE labeled.graph_id = total.graph_id
+        ''', {'exp_id': exp_id})
+    
+        d = defaultdict(int)
+        for row in c:
+            d[row[0]] = row[1]
+    
+    return d
+
+def graphs_touched_by(db, exp_id: int, user_id: int):
+    with db.cursor() as c:
+        c.execute('''
+        SELECT graph_id
+        FROM jobs
+        WHERE
+            completing_user = %(user_id)s AND
+            exp_id = %(exp_id)s
+        ''', {'exp_id': exp_id, 'user_id': user_id})
+
+        return set([r[0] for r in c.fetchall()])
