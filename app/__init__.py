@@ -1,8 +1,9 @@
-from flask import Flask
+from flask import Flask, session
 from flask.helpers import get_debug_flag
 from flask.logging import default_handler
 import logging
 from .config import DevConfig, ProdConfig
+import secrets
 
 logger = logging.getLogger(__name__)
 logger.addHandler(default_handler)
@@ -20,6 +21,8 @@ def make_app() -> Flask:
     
     from .views import views
     app.register_blueprint(views)
+    
+    app.before_request(session_upsert_userid)
 
     return app
 
@@ -28,3 +31,7 @@ def register_extensions(app: Flask):
     db.init_app(app)
     from .extensions import toolbar
     toolbar.init_app(app)
+
+def session_upsert_userid():
+    if session.get('user_id') is None:
+        session['user_id'] = secrets.token_hex(20)
