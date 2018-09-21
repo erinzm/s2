@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, escape, request, abort, redirect, 
 import logging
 import numpy as np
 from .master import S2, Master
-from .db import db, uri_for_image, get_basis_uris, basis_weights_for_node
+from .db import db, uri_for_image, get_basis_uris, basis_weights_for_node, naive_proportion_labeled
 from PIL import Image
 from .imgen import as_base64_png, load_image, perturb_image
 
@@ -16,7 +16,15 @@ def get_query(exp_id):
         master = Master(conn, exp_id)
 
         def priority(job, user_id, state):
-            return 0 # np.random.randn()
+            with db.connection as conn:
+                ## TODO: this is very very slow & kinda stupid, priority is evaluated for all jobs
+                ## figure out a better way to do this (caching per-request? in-process smth?)
+                proportion_labeled = naive_proportion_labeled(conn, exp_id, job['graph_id'])
+
+            COMPLETION_WEIGHT = 10
+
+            return proportion_labeled*COMPLETION_WEIGHT
+
         user_id = 0
         job = master.get_job_for(conn, user_id, priority)
 

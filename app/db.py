@@ -58,3 +58,22 @@ def required_votes(db, exp_id: int) -> int:
     with db.cursor() as c:
         c.execute('SELECT required_votes_per_node FROM experiments WHERE id = %s', (exp_id,))
         return c.fetchone()[0]
+
+def naive_proportion_labeled(db, exp_id: int, graph_id: int) -> int:
+    with db.cursor() as c:
+        c.execute('''
+        WITH
+            graph_nodes AS (
+                SELECT id, label FROM nodes
+                WHERE exp_id = %(exp_id)s
+                AND graph_id = %(graph_id)s),
+            labeled_nodes AS (
+                SELECT id FROM graph_nodes
+                WHERE label IS NOT NULL)
+        SELECT (
+            (SELECT COUNT(*) FROM labeled_nodes)::float
+            /
+            (SELECT COUNT(*) FROM graph_nodes)::float)
+        ''', {'exp_id': exp_id, 'graph_id': graph_id})
+        
+        return c.fetchone()[0]
