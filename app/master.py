@@ -194,6 +194,10 @@ class Master:
 
             logger.debug(f'found optimal job: {opt_job}')
 
+            # just pretend negative-priority jobs are fake below some threshold, so that we actually make users wait sometimes.
+            if opt_job['priority'] < -100:
+                return None
+
             # switch this job to WAITING and set the time we checked it out
             c.execute("UPDATE jobs SET status = 'waiting', checked_out_at = %s WHERE id = %s",
                       (datetime.now(), opt_job['job']['job_id'],))

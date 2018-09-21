@@ -55,6 +55,7 @@ CREATE TABLE jobs (
     vote_label int NULL,
     status jobstatus NOT NULL,
     checked_out_at timestamp NULL,
+    completing_user bigint NULL,
 
     FOREIGN KEY (exp_id, graph_id, node_id) REFERENCES nodes (exp_id, graph_id, id)
 );
