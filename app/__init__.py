@@ -3,7 +3,7 @@ from flask.helpers import get_debug_flag
 from flask.logging import default_handler
 import logging
 from .config import DevConfig, ProdConfig
-import secrets
+import random
 
 logger = logging.getLogger(__name__)
 logger.addHandler(default_handler)
@@ -34,4 +34,4 @@ def register_extensions(app: Flask):
 
 def session_upsert_userid():
     if session.get('user_id') is None:
-        session['user_id'] = secrets.token_hex(20)
+        session['user_id'] = random.getrandbits(48)
