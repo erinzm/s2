@@ -46,7 +46,7 @@ def launch_experiment(experiment_dir, required_votes):
                     graph_id = image_id = c.fetchone()[0]
                 
                 # push bases
-                bases = list(x.glob('basis_*.png'))
+                bases = list(x.glob('basis_*.*'))
                 with conn.cursor() as c:
                     psycopg2.extras.execute_values(c,
                         'INSERT INTO bases (exp_id, image_id, uri) VALUES %s',
