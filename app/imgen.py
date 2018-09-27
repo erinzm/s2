@@ -6,7 +6,10 @@ from PIL import Image
 
 def load_image(fp) -> np.ndarray:
     image = Image.open(fp)
-    return np.asarray(image).astype('float')
+    arr = np.asarray(image)
+    maxval = np.iinfo(arr.dtype).max
+    arr = arr.astype('float') / maxval
+    return arr
 
 def as_base64_png(img: Image) -> bytes:
     buf = BytesIO()
@@ -16,13 +19,14 @@ def as_base64_png(img: Image) -> bytes:
 
 def perturb_image(base_image: np.ndarray, weights: np.ndarray, bases: List[np.ndarray]):
     perturbation = np.zeros_like(base_image)
+    assert(len(weights) == len(bases))
     assert(all(base_image.shape == base.shape for base in bases))
     
     for i, basis in enumerate(bases):
         perturbation += weights[i] * basis
     
     pimage = base_image + perturbation
-    pimage[pimage > 255] = 255
+    pimage[pimage > 1] = 1
     pimage[pimage < 0] = 0
 
-    return pimage.astype('uint8')
+    return pimage

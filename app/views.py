@@ -34,10 +34,13 @@ def get_query(exp_id):
 
         if job is not None:
             x = load_image(uri_for_image(conn, exp_id, job['graph_id']))
-            bases = [load_image(uri) for uri in get_basis_uris(conn, exp_id, job['graph_id'])]
+            bases = [np.load(uri)
+                for uri in get_basis_uris(conn, exp_id, job['graph_id'])]
             w = basis_weights_for_node(conn, exp_id, job['node_id'])
-            x̂ = perturb_image(x, w, bases)
-            img = Image.fromarray(x̂)
+            
+            logger.debug(f'basis weights are {w}')
+            x_perturbed = perturb_image(x, w, bases)
+            img = Image.fromarray((x_perturbed * 255).astype(np.uint8))
         else:
             img = None
 
